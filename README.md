@@ -25,7 +25,9 @@ Green Wipe is a modern, web-based application that provides verifiable, complian
 - **Generative AI:** [Firebase Genkit](https://firebase.google.com/docs/genkit) with Google's Gemini models.
 - **Icons:** [Lucide React](https://lucide.dev/guide/packages/lucide-react)
 - **Charts:** [Recharts](https://recharts.org/)
-- **Deployment:** [Netlify](https://www.netlify.com/) & [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)
+- **Deployment:** [Vercel](https://greenwipe.vercel.app/)
+
+LIVE LINK : https://greenwipe.vercel.app/
 
 ## 🔧 Getting Started
 
