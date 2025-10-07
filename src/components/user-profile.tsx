@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirebase } from '@/firebase';
@@ -16,13 +17,18 @@ import { Button } from '@/components/ui/button';
 import { Loader2, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function UserProfile() {
   const { user, isUserLoading } = useUser();
   const { auth } = useFirebase();
   const router = useRouter();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -42,6 +48,10 @@ export function UserProfile() {
     }
   };
 
+  if (!mounted) {
+    return null; // Don't render on the server to avoid hydration mismatch
+  }
+  
   if (isUserLoading) {
     return <Loader2 className="h-6 w-6 animate-spin" />;
   }
