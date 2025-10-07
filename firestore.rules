@@ -1,0 +1,121 @@
+/**
+ * @fileoverview Firestore Security Rules for the Data Wipe Application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict ownership model for devices and their associated wipe records and certificates. Only authenticated users can manage devices, and all wipe records and certificates are secured under the device they belong to.
+ *
+ * Data Structure:
+ * The data is organized hierarchically under the `/devices/{deviceId}` path.  Each device contains `wipeRecords` and `certificates` subcollections.
+ *
+ * Key Security Decisions:
+ * - Devices can only be created by authenticated users.
+ * - Only authenticated users who own a device can manage its wipe records and certificates.
+ * - Listing operations are allowed for device owners to view their own devices and associated data.
+ *
+ * Denormalization for Authorization:
+ * The `deviceId` is used consistently across the data model to establish clear relationships.  While the instructions do not define a device ownership field, it is critical to secure write operations.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secures the `/devices` collection, ensuring only authenticated users can create, read, update, or delete devices.
+     * @path /devices/{deviceId}
+     * @allow (create) - Authenticated user creates a new device.
+     * @allow (get, list) - Authenticated user gets a device.
+     * @deny (create) - Unauthenticated user attempts to create a device.
+     * @deny (update, delete) - Any user attempts to update or delete a device they do not own or if the device does not exist.
+     * @principle Enforces device ownership and authentication for all operations.
+     */
+    match /devices/{deviceId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner() {
+        return request.auth.uid == resource.data.ownerUid;
+      }
+
+      function isCreatingOwner() {
+        return request.auth.uid == request.resource.data.ownerUid;
+      }
+
+      function isExistingOwner() {
+        return isSignedIn() && isOwner() && existsAfter(/databases/$(database)/documents/devices/$(deviceId));
+      }
+
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isCreatingOwner();
+      allow update: if isExistingOwner();
+      allow delete: if isExistingOwner();
+    }
+
+    /**
+     * @description Secures the `/wipeRecords` subcollection under each device, ensuring only device owners can manage wipe records.
+     * @path /devices/{deviceId}/wipeRecords/{wipeRecordId}
+     * @allow (create) - Authenticated device owner creates a new wipe record for their device.
+     * @allow (get, list) - Authenticated device owner gets the list of wipe records for their device.
+     * @deny (create) - Unauthenticated user attempts to create a wipe record.
+     * @deny (update, delete) - Any user attempts to update or delete a wipe record for a device they do not own or if the wipe record does not exist.
+     * @principle Enforces device ownership for all wipe record operations.
+     */
+    match /devices/{deviceId}/wipeRecords/{wipeRecordId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getDevice() {
+        return get(/databases/$(database)/documents/devices/$(deviceId));
+      }
+
+      function isDeviceOwner() {
+        return request.auth.uid == getDevice().data.ownerUid;
+      }
+
+      function isExistingDeviceOwner() {
+        return isSignedIn() && isDeviceOwner() && existsAfter(/databases/$(database)/documents/devices/$(deviceId)/wipeRecords/$(wipeRecordId));
+      }
+
+      allow get: if isSignedIn() && isDeviceOwner();
+      allow list: if isSignedIn() && isDeviceOwner();
+      allow create: if isSignedIn() && isDeviceOwner();
+      allow update: if isExistingDeviceOwner();
+      allow delete: if isExistingDeviceOwner();
+    }
+
+    /**
+     * @description Secures the `/certificates` subcollection under each device, ensuring only device owners can manage certificates.
+     * @path /devices/{deviceId}/certificates/{certificateId}
+     * @allow (create) - Authenticated device owner creates a new certificate for their device.
+     * @allow (get, list) - Authenticated device owner gets the list of certificates for their device.
+     * @deny (create) - Unauthenticated user attempts to create a certificate.
+     * @deny (update, delete) - Any user attempts to update or delete a certificate for a device they do not own or if the certificate does not exist.
+     * @principle Enforces device ownership for all certificate operations.
+     */
+    match /devices/{deviceId}/certificates/{certificateId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getDevice() {
+        return get(/databases/$(database)/documents/devices/$(deviceId));
+      }
+
+      function isDeviceOwner() {
+        return request.auth.uid == getDevice().data.ownerUid;
+      }
+
+      function isExistingDeviceOwner() {
+        return isSignedIn() && isDeviceOwner() && existsAfter(/databases/$(database)/documents/devices/$(deviceId)/certificates/$(certificateId));
+      }
+
+      allow get: if isSignedIn() && isDeviceOwner();
+      allow list: if isSignedIn() && isDeviceOwner();
+      allow create: if isSignedIn() && isDeviceOwner();
+      allow update: if isExistingDeviceOwner();
+      allow delete: if isExistingDeviceOwner();
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "entities": {
+    "WipeRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WipeRecord",
+      "type": "object",
+      "description": "Represents a record of a data wipe operation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WipeRecord entity."
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "Identifier of the device that was wiped. (Relationship: Device 1:N WipeRecord)"
+        },
+        "wipeAlgorithm": {
+          "type": "string",
+          "description": "Algorithm used for the data wipe."
+        },
+        "wipeStatus": {
+          "type": "string",
+          "description": "Status of the data wipe operation (e.g., 'completed', 'failed', 'in progress')."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Timestamp indicating when the wipe operation started.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "Timestamp indicating when the wipe operation ended.",
+          "format": "date-time"
+        },
+        "certificateId": {
+          "type": "string",
+          "description": "Identifier of the generated wipe certificate. (Relationship: Certificate 1:1 WipeRecord)"
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "Status of the wipe verification process."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Any notes or comments related to the data wipe operation."
+        }
+      },
+      "required": [
+        "id",
+        "deviceId",
+        "wipeAlgorithm",
+        "wipeStatus",
+        "startTime",
+        "endTime",
+        "certificateId",
+        "verificationStatus"
+      ]
+    },
+    "Device": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Device",
+      "type": "object",
+      "description": "Represents a storage device.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Device entity."
+        },
+        "deviceName": {
+          "type": "string",
+          "description": "Name of the storage device."
+        },
+        "deviceType": {
+          "type": "string",
+          "description": "Type of storage device (e.g., 'SSD', 'HDD', 'USB')."
+        },
+        "serialNumber": {
+          "type": "string",
+          "description": "Serial number of the storage device."
+        },
+        "capacity": {
+          "type": "number",
+          "description": "Storage capacity of the device in GB."
+        },
+        "manufacturer": {
+          "type": "string",
+          "description": "Manufacturer of the storage device."
+        }
+      },
+      "required": [
+        "id",
+        "deviceName",
+        "deviceType",
+        "serialNumber",
+        "capacity",
+        "manufacturer"
+      ]
+    },
+    "Certificate": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Certificate",
+      "type": "object",
+      "description": "Represents a data wipe certificate.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Certificate entity."
+        },
+        "certificateData": {
+          "type": "string",
+          "description": "The actual certificate data in JSON format."
+        },
+        "digitalSignature": {
+          "type": "string",
+          "description": "Digital signature for the certificate to ensure tamper-proof status."
+        },
+        "generationTime": {
+          "type": "string",
+          "description": "Timestamp indicating when the certificate was generated.",
+          "format": "date-time"
+        },
+        "wipeRecordId": {
+          "type": "string",
+          "description": "Reference to WipeRecord. (Relationship: WipeRecord 1:1 Certificate)"
+        }
+      },
+      "required": [
+        "id",
+        "certificateData",
+        "digitalSignature",
+        "generationTime"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  }
+}
